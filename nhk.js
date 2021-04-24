@@ -1,7 +1,7 @@
 var nhk = {};
 
 nhk.hello = function(){
-  console.log('Hello, NHK API!!, test 6');
+  console.log('Hello, NHK API!!, test 7');
   
 };
 
