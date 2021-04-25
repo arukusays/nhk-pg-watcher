@@ -1,12 +1,13 @@
-const apikey = '';
-const area = '';
-const service = 'tv';
-const keywords = ['サッカーの園', '魔改造の夜', 'はなかっぱ'];
+// 下記パラメータを別ファイルで定義しておく.
+// const APIKEY = 'xxxxxxxxxxxxx';
+// const AREA = '000';
+// const SERVICE = 'tv';
+// const KEYWORDS = ['サッカーの園', '魔改造の夜', 'はなかっぱ'];
 
 function main() {
   Logger.log('start');
   const today = new Date();
-  const results = find(toDateString(today), keywords);
+  const results = find(toDateString(today), KEYWORDS);
   Logger.log('results: ' + results.length );
   for(let result of results){
     Logger.log(result);
@@ -16,7 +17,7 @@ function main() {
 
 function find(date, keywords){
   const findings = [];
-  const url = `https://api.nhk.or.jp/v2/pg/list/${area}/${service}/${date}.json?key=${apikey}`;
+  const url = `https://api.nhk.or.jp/v2/pg/list/${AREA}/${SERVICE}/${date}.json?key=${APIKEY}`;
   const response = UrlFetchApp.fetch(url);
   const result = JSON.parse(response.getContentText());
   for(let channel in result.list){
