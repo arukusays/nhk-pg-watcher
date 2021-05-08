@@ -6,11 +6,19 @@
 
 function main() {
   Logger.log('start');
-  const today = new Date();
-  const results = find(toDateString(today), KEYWORDS);
-  Logger.log('results: ' + results.length );
-  for(let result of results){
-    Logger.log(result);
+  for(let i = 0; i < 8; i++){
+    const date = new Date();
+    date.setDate(date.getDate() + i);
+    const dateString = toDateString(date);
+    try {
+      const results = find(dateString, KEYWORDS);
+      Logger.log(`results of ${dateString}: ${results.length}`);
+      for(let result of results){
+        Logger.log(result);
+      } 
+    } catch (error) {
+      Logger.log(`results of ${dateString}: error -> ${error}`);
+    }
   }
   Logger.log('end');
 }
