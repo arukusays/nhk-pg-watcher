@@ -3,9 +3,11 @@
 // const AREA = '000';
 // const SERVICE = 'tv';
 // const KEYWORDS = ['サッカーの園', '魔改造の夜', 'はなかっぱ'];
+// const RECIPIENT = 'xxxxxxx@gmail.com';
 
 function main() {
-  Logger.log('start');
+
+  const total = {};
   for(let i = 0; i < 8; i++){
     const date = new Date();
     date.setDate(date.getDate() + i);
@@ -13,14 +15,28 @@ function main() {
     try {
       const results = find(dateString, KEYWORDS);
       Logger.log(`results of ${dateString}: ${results.length}`);
-      for(let result of results){
-        Logger.log(result);
-      } 
+      if(results.length > 0){
+        total[dateString] = results;
+      }
     } catch (error) {
       Logger.log(`results of ${dateString}: error -> ${error}`);
     }
   }
-  Logger.log('end');
+
+  Logger.log(`number of days including keywords: ${Object.keys(total).length}`);
+  if(Object.keys(total).length > 0){
+    let body = '';
+    for(let date in total){
+      body += '\n';
+      body += `- ${date}: ${total[date].length} items\n`;
+      total[date].forEach(program => 
+        body += `  - ${program.shorten} \n`
+      );
+    }
+    Logger.log('send email');
+    GmailApp.sendEmail(RECIPIENT, 'Found TV program!!', body);
+  }
+
 }
 
 function find(date, keywords){
@@ -55,7 +71,8 @@ function getSummary(program){
   return {
     'id': program.id,
     'title': program.title,
-    'channel': program.service.id + ':' + program.service.name,
+    'channel': program.service.name,
     'start_time': program.start_time,
+    'shorten': `${program.service.name}:${program.start_time}:${program.title}`,
   }
 }
