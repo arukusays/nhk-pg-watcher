@@ -27,14 +27,13 @@ function main() {
   if(Object.keys(total).length > 0){
     let body = '';
     for(let date in total){
-      body += '\n';
       body += `- ${date}: ${total[date].length} items\n`;
       total[date].forEach(program => 
         body += `  - ${program.shorten} \n`
       );
     }
     Logger.log('send email');
-    GmailApp.sendEmail(RECIPIENT, 'Found TV program!!', body);
+    GmailApp.sendEmail(RECIPIENT, 'Target Programs were found!!', body);
   }
 
 }
@@ -60,6 +59,10 @@ function toDateString(d){
   return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 }
 
+function toTimeString(dateString){
+  return new Date(dateString).toLocaleTimeString('ja-JP', {hour12: false});
+}
+
 function pad(number){
   if(number < 10){
     return '0' + number;
@@ -73,6 +76,6 @@ function getSummary(program){
     'title': program.title,
     'channel': program.service.name,
     'start_time': program.start_time,
-    'shorten': `${program.service.name}:${program.start_time}:${program.title}`,
+    'shorten': `${program.service.name}:${toTimeString(program.start_time)}:${program.title}`,
   }
 }
