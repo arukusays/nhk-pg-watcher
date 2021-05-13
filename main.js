@@ -76,6 +76,6 @@ function getSummary(program){
     'title': program.title,
     'channel': program.service.name,
     'start_time': program.start_time,
-    'shorten': `${program.service.name}:${toTimeString(program.start_time)}:${program.title}`,
+    'shorten': `${toTimeString(program.start_time)} [${program.service.name}] ${program.title}`,
   }
 }
