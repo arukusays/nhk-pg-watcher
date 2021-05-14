@@ -33,7 +33,13 @@ function main() {
       );
     }
     Logger.log('send email');
-    GmailApp.sendEmail(RECIPIENT, 'Target Programs were found!!', body);
+    const message = {
+      name: 'NHK Program Watcher', // the name of the sender
+      to: RECIPIENT,
+      subject: 'Target Programs were found!!',
+      body: body,
+    };
+    MailApp.sendEmail(message);
   }
 
 }
