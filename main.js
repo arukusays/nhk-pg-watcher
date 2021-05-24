@@ -25,13 +25,17 @@ function main() {
 
   Logger.log(`number of days including keywords: ${Object.keys(total).length}`);
   if(Object.keys(total).length > 0){
-    let body = '';
+    let body = 'キーワードを含む番組が見つかりました。\n';
     for(let date in total){
-      body += `- ${date}: ${total[date].length} items\n`;
+      body += `\n`;
+      body += `【${date}】 ${total[date].length} items\n`;
       total[date].forEach(program => 
-        body += `  - ${program.shorten} \n`
+        body += `- ${program.shorten} \n`
       );
     }
+    body +=`\n`;
+    body +=`以上`;
+
     Logger.log('send email');
     const message = {
       name: 'NHK Program Watcher', // the name of the sender
