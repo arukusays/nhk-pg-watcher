@@ -8,6 +8,8 @@
 function main() {
 
   const total = {};
+  const RETRY_MAX = 3;
+  let retry_counter = 0;
   for(let i = 0; i < 8; i++){
     const date = new Date();
     date.setDate(date.getDate() + i);
@@ -20,6 +22,14 @@ function main() {
       }
     } catch (error) {
       Logger.log(`results of ${dateString}: error -> ${error}`);
+      if(retry_counter < RETRY_MAX) {
+        Logger.log(`retry for ${dateString}. retry_counter: ${retry_counter}.`);
+        retry_counter++;
+        i--;
+      } else {
+        Logger.log(`give up getting the data of ${dateString}.`);
+        retry_counter = 0;
+      }
     }
   }
 
