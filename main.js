@@ -60,6 +60,7 @@ function main() {
 
 function find(date, keywords){
   const findings = [];
+  const idsOfFindings = [];
   const url = `https://api.nhk.or.jp/v2/pg/list/${AREA}/${SERVICE}/${date}.json?key=${APIKEY}`;
   const response = UrlFetchApp.fetch(url);
   const result = JSON.parse(response.getContentText());
@@ -67,6 +68,10 @@ function find(date, keywords){
     for(let program of result.list[channel]){
       for(let keyword of keywords){
         if(program.title.includes(keyword)){
+          if(idsOfFindings.includes(program.id)){
+            continue;
+          }
+          idsOfFindings.push(program.id);
           findings.push(getSummary(program));
         };
       }
@@ -92,10 +97,6 @@ function pad(number){
 
 function getSummary(program){
   return {
-    'id': program.id,
-    'title': program.title,
-    'channel': program.service.name,
-    'start_time': program.start_time,
     'shorten': `${toTimeString(program.start_time)} [${program.service.name}] ${program.title}`,
   }
 }
