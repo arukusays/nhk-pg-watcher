@@ -84,10 +84,6 @@ function toDateString(d){
   return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
 }
 
-function toTimeString(dateString){
-  return new Date(dateString).toLocaleTimeString('ja-JP', {hour12: false});
-}
-
 function pad(number){
   if(number < 10){
     return '0' + number;
@@ -96,7 +92,11 @@ function pad(number){
 }
 
 function getSummary(program){
+  // APIが返す日時文字列（例 "2023-06-20T06:00:00+09:00"）から時刻を切り出す
+  const startTime = program.start_time.substring(11, 11 + 8);
+  // サービス名共通の接頭辞「NHK」を除く
+  const serviceName = program.service.name.substring(3);
   return {
-    'shorten': `${toTimeString(program.start_time)} [${program.service.name}] ${program.title}`,
+    'shorten': `${startTime} [${serviceName}] ${program.title}`,
   }
 }
