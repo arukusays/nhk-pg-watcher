@@ -18,10 +18,6 @@ function main() {
       const results = find(dateString, KEYWORDS);
       Logger.log(`results of ${dateString}: ${results.length}`);
       if(results.length > 0){
-        // 時刻の昇順でソートする
-        results.sort(function(p1, p2){
-          return p1.startTime <= p2.startTime ? -1 : 1;
-        });
         total[dateString] = results;
       }
     } catch (error) {
@@ -81,6 +77,7 @@ function find(date, keywords){
       }
     }
   }
+  findings.sort((p1, p2) => p1.startDatetime - p2.startDatetime);
   return findings;
 }
 
@@ -101,7 +98,7 @@ function getSummary(program){
   // サービス名共通の接頭辞「NHK」を除く
   const serviceName = program.service.name.substring(3);
   return {
-    'startTime': startTime,
+    'startDatetime': new Date(program.start_time),
     'shorten': `${startTime} [${serviceName}] ${program.title}`,
   }
 }
