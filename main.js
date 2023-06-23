@@ -38,7 +38,7 @@ function main() {
     let body = 'キーワードを含む番組が見つかりました。\n';
     for(let date in total){
       body += `\n`;
-      body += `【${date}】 ${total[date].length} items \n`;
+      body += `【${date}】\n`;
       total[date].forEach(program => 
         body += `- ${program.shorten} \n`
       );
