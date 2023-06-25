@@ -35,23 +35,22 @@ function main() {
 
   Logger.log(`number of days including keywords: ${Object.keys(total).length}`);
   if(Object.keys(total).length > 0){
-    let body = 'キーワードを含む番組が見つかりました。\n';
+    let body = ['キーワードを含む番組が見つかりました。'];
     for(let date in total){
-      body += `\n`;
-      body += `【${date}】\n`;
-      total[date].forEach(program => 
-        body += `- ${program.shorten} \n`
-      );
+      let dateString = new Date(date).toLocaleDateString('ja-JP', {weekday:'short',month:'2-digit',day:'2-digit'});
+      body.push(``);
+      body.push(`【${dateString}】`);
+      body.push(...total[date]);
     }
-    body +=`\n`;
-    body +=`以上`;
+    body.push(``);
+    body.push(`以上`);
 
     Logger.log('send email');
     const message = {
       name: 'NHK Program Watcher', // the name of the sender
       to: RECIPIENT,
       subject: 'Target Programs were found!!',
-      body: body,
+      body: body.join(`\n`),
     };
     MailApp.sendEmail(message);
   }
@@ -98,7 +97,7 @@ function getSummary(program){
   // サービス名共通の接頭辞「NHK」を除く
   const serviceName = program.service.name.substring(3);
   return {
-    'startDatetime': new Date(program.start_time),
-    'shorten': `${startTime} [${serviceName}] ${program.title}`,
+    startDatetime: new Date(program.start_time),
+    toString: () => `- ${startTime} [${serviceName}] ${program.title}`,
   }
 }
