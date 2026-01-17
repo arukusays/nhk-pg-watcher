@@ -63,10 +63,10 @@ function find(date, keywords){
   const url = `https://program-api.nhk.jp/v3/papiPgDateTv?service=${SERVICE}&area=${AREA}&date=${date}&key=${APIKEY}`;
   const response = UrlFetchApp.fetch(url);
   const result = JSON.parse(response.getContentText());
-  for(let channel in result.list){
-    for(let program of result.list[channel]){
+  for(let channel in result){
+    for(let program of result[channel].publication){
       for(let keyword of keywords){
-        if(program.title.includes(keyword)){
+        if(program.name.includes(keyword)){
           if(idsOfFindings.includes(program.id)){
             continue;
           }
@@ -93,11 +93,12 @@ function pad(number){
 
 function getSummary(program){
   // APIが返す日時文字列（例 "2023-06-20T06:00:00+09:00"）から時刻を切り出す
-  const startTime = program.start_time.substring(11, 11 + 8);
+  const startTime = program.startDate.substring(11, 11 + 8);
   // サービス名共通の接頭辞「NHK」を除く
-  const serviceName = program.service.name.substring(3);
+  // const serviceName = program.service.name.substring(3);
+  const serviceName = program.identifierGroup.serviceId; // 暫定対応
   return {
-    startDatetime: new Date(program.start_time),
-    toString: () => `- ${startTime} [${serviceName}] ${program.title}`,
+    startDatetime: new Date(program.startDate),
+    toString: () => `- ${startTime} [${serviceName}] ${program.name}`,
   }
 }
