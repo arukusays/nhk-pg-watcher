@@ -60,7 +60,7 @@ function main() {
 function find(date, keywords){
   const findings = [];
   const idsOfFindings = [];
-  const url = `https://program-api.nhk.jp/v3/papiPgDateTv?service=${SERVICE}&area=${AREA}&date=${date}&key=${APIKEY}`
+  const url = `https://program-api.nhk.jp/v3/papiPgDateTv?service=${SERVICE}&area=${AREA}&date=${date}&key=${APIKEY}`;
   const response = UrlFetchApp.fetch(url);
   const result = JSON.parse(response.getContentText());
   for(let channel in result.list){
