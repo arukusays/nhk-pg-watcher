@@ -98,13 +98,7 @@ function find(date, keywords){
     }
   }
 
-  // startDatetime が null の場合を考慮して安全にソート
-  findings.sort((p1, p2) => {
-    const t1 = p1.startDatetime instanceof Date && !isNaN(p1.startDatetime) ? p1.startDatetime.getTime() : Infinity;
-    const t2 = p2.startDatetime instanceof Date && !isNaN(p2.startDatetime) ? p2.startDatetime.getTime() : Infinity;
-    return t1 - t2;
-  });
-
+  findings.sort((p1, p2) => p1.startDatetime - p2.startDatetime);
   return findings;
 }
 
@@ -121,12 +115,9 @@ function pad(number){
 
 function getSummary(program, serviceName){
   // APIが返す日時文字列（例 "2026-01-17T04:15:00+09:00"）から時刻を切り出す
-  const startDateStr = program.startDate;
-  const startTime = startDateStr.substring(11, 19) || '';
-  const startDatetime = startDateStr ? new Date(startDateStr) : null;
-
+  const startTime = program.startDate.substring(11, 19) || '';
   return {
-    startDatetime,
+    startDatetime: new Date(program.startDate),
     toString: () => `- ${startTime} [${serviceName}] ${program.name}`,
   };
 }
