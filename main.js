@@ -64,6 +64,7 @@ function find(date, keywords){
   const response = UrlFetchApp.fetch(url);
   const result = JSON.parse(response.getContentText());
   for(let channel in result){
+    const serviceName = result[channel].publishedOn[0].identifierGroup.shortenedDisplayName;
     for(let program of result[channel].publication){
       for(let keyword of keywords){
         if(program.name.includes(keyword)){
@@ -72,7 +73,7 @@ function find(date, keywords){
             continue;
           }
           dateAndNameOfFindings.push(dateAndName);
-          findings.push(getSummary(program));
+          findings.push(getSummary(program, serviceName));
         };
       }
     }
@@ -92,12 +93,9 @@ function pad(number){
   return number;
 }
 
-function getSummary(program){
+function getSummary(program, serviceName){
   // APIが返す日時文字列（例 "2023-06-20T06:00:00+09:00"）から時刻を切り出す
   const startTime = program.startDate.substring(11, 11 + 8);
-  // サービス名共通の接頭辞「NHK」を除く
-  // const serviceName = program.service.name.substring(3);
-  const serviceName = program.identifierGroup.serviceId; // 暫定対応
   return {
     startDatetime: new Date(program.startDate),
     toString: () => `- ${startTime} [${serviceName}] ${program.name}`,
