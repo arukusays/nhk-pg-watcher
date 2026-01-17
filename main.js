@@ -59,24 +59,66 @@ function main() {
 
 function find(date, keywords){
   const findings = [];
-  const idsOfFindings = [];
-  const url = `https://api.nhk.or.jp/v2/pg/list/${AREA}/${SERVICE}/${date}.json?key=${APIKEY}`;
-  const response = UrlFetchApp.fetch(url);
-  const result = JSON.parse(response.getContentText());
-  for(let channel in result.list){
-    for(let program of result.list[channel]){
-      for(let keyword of keywords){
-        if(program.title.includes(keyword)){
-          if(idsOfFindings.includes(program.id)){
+  // 重複チェックは Set を使って効率化
+  const seenKeys = new Set();
+  // 新しい program-api エンドポイントに合わせる
+  const url = `https://program-api.nhk.jp/v3/papiPgDateTv?service=${SERVICE}&area=${AREA}&date=${date}&key=${APIKEY}`;
+
+  // ネットワークエラーや HTTP ステータスを扱うために muteHttpExceptions を利用
+  const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
+  if (typeof response.getResponseCode === 'function' && response.getResponseCode() !== 200) {
+    throw new Error(`NHK API fetch failed: ${response.getResponseCode()} ${response.getContentText()}`);
+  }
+
+  let result;
+  try {
+    result = JSON.parse(response.getContentText());
+  } catch (e) {
+    throw new Error('Invalid JSON from NHK API: ' + e.message);
+  }
+
+  // result のトップレベルは g1 等のキーが来る構造なので Object.keys で回す
+  for (const channelKey of Object.keys(result || {})) {
+    const channel = result[channelKey];
+
+    // サービス名の取り方を堅牢に（存在チェックとフォールバック）
+    const serviceName = channel?.publishedOn?.[0]?.identifierGroup?.shortenedDisplayName
+      ?? channel?.publishedOn?.[0]?.identifierGroup?.shortenedName
+      ?? channel?.publishedOn?.[0]?.name
+      ?? channelKey
+      ?? 'NHK';
+
+    const publications = channel?.publication ?? [];
+    for (const program of publications) {
+      // name が存在しない場合は title にフォールバック（旧 API 互換）
+      const progNameRaw = program?.name ?? program?.title ?? '';
+      const progNameLower = progNameRaw.toLowerCase();
+
+      for (const keyword of keywords) {
+        if (!keyword) continue;
+        if (progNameLower.includes(String(keyword).toLowerCase())) {
+          // 重複キーは startDate と name の組合せで判定（区切り文字を入れて衝突を避ける）
+          const key = `${program?.startDate ?? ''}|${progNameRaw}`;
+          if (seenKeys.has(key)) {
+            // すでに追加済み
             continue;
           }
-          idsOfFindings.push(program.id);
-          findings.push(getSummary(program));
-        };
+          seenKeys.add(key);
+          findings.push(getSummary(program, serviceName));
+          // 1つの番組につき最初のキーワードヒットだけで良いので内ループは抜ける
+          break;
+        }
       }
     }
   }
-  findings.sort((p1, p2) => p1.startDatetime - p2.startDatetime);
+
+  // startDatetime が null の場合を考慮して安全にソート
+  findings.sort((p1, p2) => {
+    const t1 = p1.startDatetime instanceof Date && !isNaN(p1.startDatetime) ? p1.startDatetime.getTime() : Infinity;
+    const t2 = p2.startDatetime instanceof Date && !isNaN(p2.startDatetime) ? p2.startDatetime.getTime() : Infinity;
+    return t1 - t2;
+  });
+
   return findings;
 }
 
@@ -91,13 +133,14 @@ function pad(number){
   return number;
 }
 
-function getSummary(program){
-  // APIが返す日時文字列（例 "2023-06-20T06:00:00+09:00"）から時刻を切り出す
-  const startTime = program.start_time.substring(11, 11 + 8);
-  // サービス名共通の接頭辞「NHK」を除く
-  const serviceName = program.service.name.substring(3);
+function getSummary(program, serviceName){
+  // APIが返す日時文字列（例 "2026-01-17T04:15:00+09:00"）から時刻を切り出す
+  const startDateStr = program?.startDate ?? program?.start_time ?? '';
+  const startTime = startDateStr.substring(11, 19) || '';
+  const startDatetime = startDateStr ? new Date(startDateStr) : null;
+
   return {
-    startDatetime: new Date(program.start_time),
-    toString: () => `- ${startTime} [${serviceName}] ${program.title}`,
-  }
+    startDatetime,
+    toString: () => `- ${startTime} [${serviceName ?? 'NHK'}] ${program?.name ?? program?.title ?? ''}`,
+  };
 }
