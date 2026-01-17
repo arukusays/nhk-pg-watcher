@@ -72,7 +72,7 @@ function find(date, keywords){
       for (const keyword of keywords) {
         if (progNameLower.includes(keyword.toLowerCase())) {
           // 重複キーは startDate と name の組合せで判定（区切り文字を入れて衝突を避ける）
-          const key = `${program.startDate}|${progNameRaw}`;
+          const key = `${program.startDate}|${program.name}`;
           if (seenKeys.has(key)) {
             continue;
           }
@@ -101,7 +101,7 @@ function pad(number){
 
 function getSummary(program, serviceName){
   // APIが返す日時文字列（例 "2023-06-20T06:00:00+09:00"）から時刻を切り出す
-  const startTime = program.startDate.substring(11, 19) || '';
+  const startTime = program.startDate.substring(11, 11 + 8);
   return {
     startDatetime: new Date(program.startDate),
     toString: () => `- ${startTime} [${serviceName}] ${program.name}`,
