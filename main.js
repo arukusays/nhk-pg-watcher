@@ -59,23 +59,11 @@ function main() {
 
 function find(date, keywords){
   const findings = [];
-  // 重複チェックは Set を使って効率化
+  // 重複チェック用
   const seenKeys = new Set();
-  // 新しい program-api エンドポイントに合わせる
   const url = `https://program-api.nhk.jp/v3/papiPgDateTv?service=${SERVICE}&area=${AREA}&date=${date}&key=${APIKEY}`;
-
-  // ネットワークエラーや HTTP ステータスを扱うために muteHttpExceptions を利用
-  const response = UrlFetchApp.fetch(url, { muteHttpExceptions: true });
-  if (typeof response.getResponseCode === 'function' && response.getResponseCode() !== 200) {
-    throw new Error(`NHK API fetch failed: ${response.getResponseCode()} ${response.getContentText()}`);
-  }
-
-  let result;
-  try {
-    result = JSON.parse(response.getContentText());
-  } catch (e) {
-    throw new Error('Invalid JSON from NHK API: ' + e.message);
-  }
+  const response = UrlFetchApp.fetch(url);
+  const result = JSON.parse(response.getContentText());
 
   // result のトップレベルは g1 等のキーが来る構造なので Object.keys で回す
   for (const channelKey of Object.keys(result || {})) {
@@ -90,9 +78,7 @@ function find(date, keywords){
 
     const publications = channel?.publication ?? [];
     for (const program of publications) {
-      // name が存在しない場合は title にフォールバック（旧 API 互換）
-      const progNameRaw = program?.name ?? program?.title ?? '';
-      const progNameLower = progNameRaw.toLowerCase();
+      const progNameLower = program.name.toLowerCase();
 
       for (const keyword of keywords) {
         if (!keyword) continue;
@@ -135,12 +121,12 @@ function pad(number){
 
 function getSummary(program, serviceName){
   // APIが返す日時文字列（例 "2026-01-17T04:15:00+09:00"）から時刻を切り出す
-  const startDateStr = program?.startDate ?? program?.start_time ?? '';
+  const startDateStr = program.startDate;
   const startTime = startDateStr.substring(11, 19) || '';
   const startDatetime = startDateStr ? new Date(startDateStr) : null;
 
   return {
     startDatetime,
-    toString: () => `- ${startTime} [${serviceName ?? 'NHK'}] ${program?.name ?? program?.title ?? ''}`,
+    toString: () => `- ${startTime} [${serviceName}] ${program.name}`,
   };
 }
