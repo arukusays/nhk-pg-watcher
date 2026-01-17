@@ -65,28 +65,15 @@ function find(date, keywords){
   const response = UrlFetchApp.fetch(url);
   const result = JSON.parse(response.getContentText());
 
-  // result のトップレベルは g1 等のキーが来る構造なので Object.keys で回す
-  for (const channelKey of Object.keys(result || {})) {
-    const channel = result[channelKey];
-
-    // サービス名の取り方を堅牢に（存在チェックとフォールバック）
-    const serviceName = channel?.publishedOn?.[0]?.identifierGroup?.shortenedDisplayName
-      ?? channel?.publishedOn?.[0]?.identifierGroup?.shortenedName
-      ?? channel?.publishedOn?.[0]?.name
-      ?? channelKey
-      ?? 'NHK';
-
-    const publications = channel?.publication ?? [];
-    for (const program of publications) {
+  for (const channel in result) {
+    const serviceName = channel.publishedOn[0].identifierGroup.shortenedDisplayName;
+    for (const program of channel.publication) {
       const progNameLower = program.name.toLowerCase();
-
       for (const keyword of keywords) {
-        if (!keyword) continue;
-        if (progNameLower.includes(String(keyword).toLowerCase())) {
+        if (progNameLower.includes(keyword.toLowerCase())) {
           // 重複キーは startDate と name の組合せで判定（区切り文字を入れて衝突を避ける）
-          const key = `${program?.startDate ?? ''}|${progNameRaw}`;
+          const key = `${program.startDate}|${progNameRaw}`;
           if (seenKeys.has(key)) {
-            // すでに追加済み
             continue;
           }
           seenKeys.add(key);
@@ -97,7 +84,6 @@ function find(date, keywords){
       }
     }
   }
-
   findings.sort((p1, p2) => p1.startDatetime - p2.startDatetime);
   return findings;
 }
@@ -114,7 +100,7 @@ function pad(number){
 }
 
 function getSummary(program, serviceName){
-  // APIが返す日時文字列（例 "2026-01-17T04:15:00+09:00"）から時刻を切り出す
+  // APIが返す日時文字列（例 "2023-06-20T06:00:00+09:00"）から時刻を切り出す
   const startTime = program.startDate.substring(11, 19) || '';
   return {
     startDatetime: new Date(program.startDate),
