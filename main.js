@@ -59,7 +59,7 @@ function main() {
 
 function find(date, keywords){
   const findings = [];
-  const idsOfFindings = [];
+  const dateAndNameOfFindings = [];
   const url = `https://program-api.nhk.jp/v3/papiPgDateTv?service=${SERVICE}&area=${AREA}&date=${date}&key=${APIKEY}`;
   const response = UrlFetchApp.fetch(url);
   const result = JSON.parse(response.getContentText());
@@ -67,10 +67,11 @@ function find(date, keywords){
     for(let program of result[channel].publication){
       for(let keyword of keywords){
         if(program.name.includes(keyword)){
-          if(idsOfFindings.includes(program.id)){
+          const dateAndName = program.startDate + program.name;
+          if(dateAndNameOfFindings.includes(dateAndName)){
             continue;
           }
-          idsOfFindings.push(program.id);
+          dateAndNameOfFindings.push(dateAndName);
           findings.push(getSummary(program));
         };
       }
