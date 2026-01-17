@@ -66,8 +66,8 @@ function find(date, keywords){
   const result = JSON.parse(response.getContentText());
 
   for (const channel in result) {
-    const serviceName = channel.publishedOn[0].identifierGroup.shortenedDisplayName;
-    for (const program of channel.publication) {
+    const serviceName = result[channel].publishedOn[0].identifierGroup.shortenedDisplayName;
+    for (const program of result[channel].publication) {
       const progNameLower = program.name.toLowerCase();
       for (const keyword of keywords) {
         if (progNameLower.includes(keyword.toLowerCase())) {
