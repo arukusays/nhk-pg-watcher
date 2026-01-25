@@ -59,22 +59,28 @@ function main() {
 
 function find(date, keywords){
   const findings = [];
-  const dateAndNameOfFindings = [];
+  // 重複チェック用
+  const seenKeys = new Set();
   const url = `https://program-api.nhk.jp/v3/papiPgDateTv?service=${SERVICE}&area=${AREA}&date=${date}&key=${APIKEY}`;
   const response = UrlFetchApp.fetch(url);
   const result = JSON.parse(response.getContentText());
-  for(let channel in result){
+
+  for (const channel in result) {
     const serviceName = result[channel].publishedOn[0].identifierGroup.shortenedDisplayName;
-    for(let program of result[channel].publication){
-      for(let keyword of keywords){
-        if(program.name.includes(keyword)){
-          const dateAndName = program.startDate + program.name;
-          if(dateAndNameOfFindings.includes(dateAndName)){
+    for (const program of result[channel].publication) {
+      const progNameLower = program.name.toLowerCase();
+      for (const keyword of keywords) {
+        if (progNameLower.includes(keyword.toLowerCase())) {
+          // 重複キーは startDate と name の組合せで判定（区切り文字を入れて衝突を避ける）
+          const key = `${program.startDate}|${program.name}`;
+          if (seenKeys.has(key)) {
             continue;
           }
-          dateAndNameOfFindings.push(dateAndName);
+          seenKeys.add(key);
           findings.push(getSummary(program, serviceName));
-        };
+          // 1つの番組につき最初のキーワードヒットだけで良いので内ループは抜ける
+          break;
+        }
       }
     }
   }
@@ -99,5 +105,5 @@ function getSummary(program, serviceName){
   return {
     startDatetime: new Date(program.startDate),
     toString: () => `- ${startTime} [${serviceName}] ${program.name}`,
-  }
+  };
 }
